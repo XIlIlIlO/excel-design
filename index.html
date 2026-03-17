@@ -3,193 +3,178 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>우주 테마 데이터 터미널</title>
+    <title>퀀트 트레이딩 터미널</title>
     <style>
-        /* 우주 느낌의 배경 및 기본 폰트 설정 */
+        /* 우주 터미널 배경 (실제 우주 이미지에 어두운 필터를 씌움) */
         body {
-            background-color: #050814;
-            background-image: radial-gradient(circle at 50% 0%, #1a2342 0%, #050814 70%);
-            color: #c9d1d9;
-            font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            background: #050814 url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2560&auto=format&fit=crop') no-repeat center center fixed;
+            background-size: cover;
+            color: #d1d5db;
+            font-family: 'Malgun Gothic', '돋움', sans-serif;
+            font-size: 12px;
+        }
+
+        /* 배경을 어둡게 눌러주는 반투명 오버레이 */
+        .overlay {
+            background-color: rgba(10, 15, 20, 0.88);
             min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
-        h1 {
-            text-align: center;
-            color: #58a6ff;
-            text-shadow: 0 0 10px rgba(88, 166, 255, 0.5);
-        }
-
-        /* 입력 창 및 버튼 디자인 */
-        .control-panel {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 30px;
-            gap: 15px;
-        }
-
-        textarea {
-            width: 90%;
-            max-width: 1000px;
-            height: 100px;
-            background-color: rgba(13, 17, 23, 0.8);
-            color: #8b949e;
-            border: 1px solid #30363d;
-            border-radius: 6px;
-            padding: 10px;
-            font-family: monospace;
-            resize: vertical;
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: #58a6ff;
-            box-shadow: 0 0 8px rgba(88, 166, 255, 0.3);
-        }
-
-        button {
-            background-color: #238636;
-            color: #ffffff;
-            border: none;
-            padding: 10px 24px;
-            font-size: 16px;
+        /* 상단 상태바 디자인 */
+        .status-bar {
+            color: #8ce196;
             font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: 0.2s;
-            box-shadow: 0 0 10px rgba(35, 134, 54, 0.4);
+            font-size: 13px;
+            margin-bottom: 5px;
+            letter-spacing: 0.5px;
         }
 
-        button:hover {
-            background-color: #2ea043;
-            box-shadow: 0 0 15px rgba(46, 160, 67, 0.6);
-        }
-
-        /* 터미널 느낌의 테이블 디자인 */
-        .table-container {
+        /* 입력 및 컨트롤 패널 */
+        #inputArea {
             width: 100%;
-            overflow-x: auto;
-            background: rgba(10, 15, 25, 0.6);
-            border-radius: 8px;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
-            border: 1px solid #30363d;
+            height: 80px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            border: 1px solid #444;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-family: inherit;
         }
+        button {
+            background-color: #2ea043; color: white; border: none; padding: 8px 16px; 
+            cursor: pointer; font-weight: bold; margin-bottom: 20px;
+        }
+        button:hover { background-color: #3fb950; }
 
+        /* 테이블 기본 디자인 */
         table {
             border-collapse: collapse;
             width: 100%;
-            white-space: nowrap;
+            border: 1px solid #333;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
         }
 
         th, td {
-            border: 1px solid #21262d;
-            padding: 8px 12px;
-            text-align: right;
-            font-size: 13px;
+            border: 1px solid #2d333b;
+            padding: 5px 8px;
+            white-space: nowrap;
         }
 
-        /* 텍스트 컬럼은 가운데 정렬 */
-        td:nth-child(2), td:nth-child(3) {
-            text-align: center; 
-        }
+        /* 텍스트 정렬 */
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
 
-        /* 헤더 디자인 */
-        th {
-            background-color: #161b22;
-            color: #e6edf3;
+        /* S15DCA (붉은색 테마) */
+        .title-red {
+            background-color: rgba(100, 30, 30, 0.85);
+            color: #ffb3b3;
             font-weight: bold;
             text-align: center;
         }
 
-        /* 행 마우스 오버 시 하이라이트 효과 */
-        tr:hover {
-            background-color: rgba(56, 139, 253, 0.1);
-        }
-
-        /* 첫 번째 그룹 헤더 (붉은 느낌) */
-        tr.header-red th {
-            background-color: rgba(74, 28, 28, 0.8);
-            color: #ffcccc;
-        }
-
-        /* 두 번째 그룹 헤더 (청록색 느낌) */
-        tr.header-teal th {
-            background-color: rgba(28, 58, 58, 0.8);
-            color: #ccffff;
-        }
-        
-        /* 합계 행 (노란색 텍스트) */
-        tr.summary-row td {
-            color: #e3b341;
+        /* L15DCA (청록색 테마) */
+        .title-teal {
+            background-color: rgba(30, 90, 80, 0.85);
+            color: #b3ffff;
             font-weight: bold;
-            background-color: rgba(255, 255, 255, 0.05);
+            text-align: center;
         }
+
+        /* 항목 헤더 (검은색 배경) */
+        .header-row th {
+            background-color: rgba(5, 5, 5, 0.9);
+            color: #e6edf3;
+            text-align: center;
+            font-weight: normal;
+        }
+
+        /* 일반 데이터 행 (투명도 조절) */
+        .data-row { background-color: rgba(15, 20, 25, 0.4); }
+        .data-row:hover { background-color: rgba(255, 255, 255, 0.05); }
+
+        /* 합계 행 */
+        .total-row {
+            background-color: rgba(20, 45, 30, 0.85);
+            color: #8ce196;
+            font-weight: bold;
+        }
+        .total-row td { text-align: right; }
+        .total-row td:first-child { text-align: center; color: #ffea7f; } /* '합계' 글자 노란색 */
+
     </style>
 </head>
 <body>
 
-    <h1>🌌 스페이스 터미널 백테스트 뷰어</h1>
-    
-    <div class="control-panel">
-        <textarea id="excelInput" placeholder="엑셀에서 복사한 데이터를 여기에 붙여넣으세요 (Ctrl+V)"></textarea>
-        <button onclick="generateTable()">터미널 뷰 생성</button>
+<div class="overlay">
+    <div id="controlPanel">
+        <textarea id="inputArea" placeholder="엑셀 데이터를 복사(Ctrl+C)하여 여기에 붙여넣기(Ctrl+V) 하세요."></textarea><br>
+        <button onclick="renderTable()">터미널 뷰어로 변환</button>
     </div>
 
-    <div class="table-container" id="tableContainer">
-        </div>
+    <div class="status-bar">L방어폭: 28.51% &nbsp;&nbsp; L망아폭: 28.51% &nbsp;&nbsp; 예상순총금: 1197.00</div>
+    
+    <div id="output"></div>
+</div>
 
-    <script>
-        function generateTable() {
-            const input = document.getElementById('excelInput').value;
-            if (!input.trim()) {
-                alert("데이터를 먼저 붙여넣어 주세요.");
-                return;
+<script>
+function renderTable() {
+    const text = document.getElementById('inputArea').value;
+    if (!text.trim()) return alert("데이터를 입력해주세요.");
+
+    const lines = text.split('\n');
+    let html = '<table>';
+
+    lines.forEach(line => {
+        if (!line.trim()) return;
+        const cells = line.split('\t');
+        
+        let trClass = '';
+        let isTitle = false;
+        let isHeader = false;
+        let isTotal = false;
+
+        // 행 성격 분류
+        if (line.includes('BINANCE_S')) { trClass = 'title-red'; isTitle = true; }
+        else if (line.includes('BINANCE_L')) { trClass = 'title-teal'; isTitle = true; }
+        else if (line.includes('전체 그룹 수')) { trClass = 'header-row'; isHeader = true; }
+        else if (line.includes('합계')) { trClass = 'total-row'; isTotal = true; }
+        else { trClass = 'data-row'; }
+
+        html += `<tr class="${trClass}">`;
+
+        cells.forEach((cell, index) => {
+            let content = cell.trim();
+            
+            // 데이터 행일 경우, 세 번째 열(종료일) 앞에 우주선/행성 이모지 추가 (이미지 고증)
+            if (!isTitle && !isHeader && !isTotal && index === 2 && content !== '') {
+                content = `🪐 ${content}`;
             }
 
-            // 줄바꿈으로 행 분리
-            const rows = input.split('\n');
-            let tableHTML = '<table>';
+            if (isTitle) {
+                // 타이틀은 전체 병합
+                if (index === 0) html += `<td colspan="20">${content}</td>`;
+            } else if (isHeader) {
+                html += `<th>${content}</th>`;
+            } else {
+                // 1, 2, 3번째 열은 가운데 정렬, 나머지는 우측 정렬
+                let alignClass = (index < 3 || isTotal && index === 0) ? 'text-center' : 'text-right';
+                html += `<td class="${alignClass}">${content}</td>`;
+            }
+        });
+        html += `</tr>`;
+    });
 
-            rows.forEach((row, index) => {
-                // 빈 줄 무시
-                if (!row.trim()) return; 
-                
-                // 엑셀에서 복사한 데이터는 탭(\t)으로 열이 구분됩니다
-                const cells = row.split('\t'); 
-                
-                // 이미지의 조건에 맞춰 행 클래스 부여 (간단한 키워드 매칭)
-                let trClass = '';
-                if (row.includes('1차 월타이밍') || row.includes('1차 필터링') || row.includes('BINANCE_S')) {
-                    trClass = 'header-red';
-                } else if (row.includes('BINANCE_L')) {
-                    trClass = 'header-teal';
-                } else if (row.includes('합계')) {
-                    trClass = 'summary-row';
-                }
-
-                tableHTML += `<tr class="${trClass}">`;
-
-                cells.forEach((cell, cellIndex) => {
-                    // 첫 두 줄 정도를 보통 헤더로 취급하거나, 문자열 길이 등을 보고 th/td 결정
-                    // 여기서는 단순히 첫 행이거나 특별한 클래스가 지정된 행을 헤더 처리합니다.
-                    if (index === 0 || index === 1 || trClass.includes('header')) {
-                        // 셀 병합(colspan) 흉내내기: 빈 셀이 많으면 병합된 것으로 간주할 수 있지만, 여기서는 단순 출력
-                        tableHTML += `<th>${cell.trim()}</th>`;
-                    } else {
-                        tableHTML += `<td>${cell.trim()}</td>`;
-                    }
-                });
-                
-                tableHTML += '</tr>';
-            });
-
-            tableHTML += '</table>';
-            document.getElementById('tableContainer').innerHTML = tableHTML;
-        }
-    </script>
+    html += '</table>';
+    
+    // 테이블 출력 후 입력창 숨기기
+    document.getElementById('output').innerHTML = html;
+    document.getElementById('controlPanel').style.display = 'none';
+}
+</script>
 
 </body>
 </html>
