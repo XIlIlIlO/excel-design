@@ -3,130 +3,180 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>퀀트 트레이딩 터미널</title>
+    <title>사이버펑크 트레이딩 터미널</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        /* 우주 터미널 배경 (실제 우주 이미지에 어두운 필터를 씌움) */
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+        /* CRT 모니터 스캔라인 및 사이버펑크 기본 배경 */
         body {
             margin: 0;
-            padding: 0;
-            background: #050814 url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2560&auto=format&fit=crop') no-repeat center center fixed;
-            background-size: cover;
-            color: #d1d5db;
-            font-family: 'Malgun Gothic', '돋움', sans-serif;
-            font-size: 12px;
-        }
-
-        /* 배경을 어둡게 눌러주는 반투명 오버레이 */
-        .overlay {
-            background-color: rgba(10, 15, 20, 0.88);
-            min-height: 100vh;
             padding: 20px;
-            box-sizing: border-box;
-        }
-
-        /* 상단 상태바 디자인 */
-        .status-bar {
-            color: #8ce196;
-            font-weight: bold;
+            background-color: #02040a;
+            background-image: 
+                linear-gradient(rgba(0, 255, 0, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 0, 0.03) 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: #a5d6ff;
+            font-family: 'Share Tech Mono', 'Malgun Gothic', monospace;
             font-size: 13px;
-            margin-bottom: 5px;
-            letter-spacing: 0.5px;
+            text-shadow: 0 0 2px rgba(165, 214, 255, 0.4);
         }
 
-        /* 입력 및 컨트롤 패널 */
+        /* 컨트롤 패널 UI */
+        .control-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 10;
+        }
+
         #inputArea {
             width: 100%;
             height: 80px;
-            background-color: rgba(0, 0, 0, 0.7);
-            color: #fff;
-            border: 1px solid #444;
+            background: rgba(13, 17, 23, 0.9);
+            color: #0ff;
+            border: 1px solid #0ff;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
             padding: 10px;
-            margin-bottom: 10px;
-            font-family: inherit;
+            font-family: 'Share Tech Mono', monospace;
+            outline: none;
+            box-sizing: border-box;
         }
-        button {
-            background-color: #2ea043; color: white; border: none; padding: 8px 16px; 
-            cursor: pointer; font-weight: bold; margin-bottom: 20px;
+        
+        #inputArea:focus {
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
         }
-        button:hover { background-color: #3fb950; }
 
-        /* 테이블 기본 디자인 */
+        .btn-group {
+            display: flex;
+            gap: 15px;
+        }
+
+        /* 네온 버튼 디자인 */
+        button {
+            background: transparent;
+            color: #0ff;
+            border: 1px solid #0ff;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: inherit;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.2) inset, 0 0 10px rgba(0, 255, 255, 0.2);
+        }
+
+        button:hover {
+            background: #0ff;
+            color: #000;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.8) inset, 0 0 20px rgba(0, 255, 255, 0.8);
+        }
+
+        #downloadBtn {
+            display: none; /* 초기에는 숨김 */
+            color: #39ff14;
+            border-color: #39ff14;
+            box-shadow: 0 0 10px rgba(57, 255, 20, 0.2) inset, 0 0 10px rgba(57, 255, 20, 0.2);
+        }
+
+        #downloadBtn:hover {
+            background: #39ff14;
+            color: #000;
+            box-shadow: 0 0 20px rgba(57, 255, 20, 0.8) inset, 0 0 20px rgba(57, 255, 20, 0.8);
+        }
+
+        /* 데이터 테이블 디자인 */
+        .table-container {
+            overflow-x: auto;
+            border: 1px solid #1f6feb;
+            box-shadow: 0 0 20px rgba(31, 111, 235, 0.3);
+            background: rgba(1, 4, 9, 0.8);
+        }
+
         table {
             border-collapse: collapse;
             width: 100%;
-            border: 1px solid #333;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
-        }
-
-        th, td {
-            border: 1px solid #2d333b;
-            padding: 5px 8px;
             white-space: nowrap;
         }
 
-        /* 텍스트 정렬 */
+        th, td {
+            border: 1px solid rgba(31, 111, 235, 0.3);
+            padding: 6px 10px;
+        }
+
         .text-center { text-align: center; }
         .text-right { text-align: right; }
 
-        /* S15DCA (붉은색 테마) */
+        /* S15DCA (붉은색 네온) */
         .title-red {
-            background-color: rgba(100, 30, 30, 0.85);
-            color: #ffb3b3;
+            background: linear-gradient(90deg, rgba(255, 0, 0, 0.2) 0%, rgba(100, 0, 0, 0.8) 50%, rgba(255, 0, 0, 0.2) 100%);
+            color: #ff4d4d;
             font-weight: bold;
+            text-shadow: 0 0 8px #ff4d4d;
             text-align: center;
         }
 
-        /* L15DCA (청록색 테마) */
+        /* L15DCA (청록색 네온) */
         .title-teal {
-            background-color: rgba(30, 90, 80, 0.85);
-            color: #b3ffff;
+            background: linear-gradient(90deg, rgba(0, 255, 255, 0.1) 0%, rgba(0, 150, 150, 0.8) 50%, rgba(0, 255, 255, 0.1) 100%);
+            color: #00ffff;
             font-weight: bold;
+            text-shadow: 0 0 8px #00ffff;
             text-align: center;
         }
 
-        /* 항목 헤더 (검은색 배경) */
+        /* 항목 헤더 */
         .header-row th {
-            background-color: rgba(5, 5, 5, 0.9);
-            color: #e6edf3;
-            text-align: center;
-            font-weight: normal;
+            background-color: rgba(31, 111, 235, 0.2);
+            color: #79c0ff;
+            text-transform: uppercase;
         }
 
-        /* 일반 데이터 행 (투명도 조절) */
-        .data-row { background-color: rgba(15, 20, 25, 0.4); }
-        .data-row:hover { background-color: rgba(255, 255, 255, 0.05); }
+        /* 데이터 행 호버 효과 (홀로그램 스캔 느낌) */
+        .data-row { transition: background 0.2s; }
+        .data-row:hover { 
+            background-color: rgba(56, 139, 253, 0.15); 
+            box-shadow: inset 0 0 10px rgba(56, 139, 253, 0.5);
+        }
 
         /* 합계 행 */
         .total-row {
-            background-color: rgba(20, 45, 30, 0.85);
-            color: #8ce196;
+            background-color: rgba(46, 160, 67, 0.15);
+            color: #3fb950;
             font-weight: bold;
+            text-shadow: 0 0 5px #3fb950;
         }
         .total-row td { text-align: right; }
-        .total-row td:first-child { text-align: center; color: #ffea7f; } /* '합계' 글자 노란색 */
-
+        .total-row td:first-child { text-align: center; color: #d2a8ff; text-shadow: 0 0 5px #d2a8ff;}
     </style>
 </head>
 <body>
 
-<div class="overlay">
-    <div id="controlPanel">
-        <textarea id="inputArea" placeholder="엑셀 데이터를 복사(Ctrl+C)하여 여기에 붙여넣기(Ctrl+V) 하세요."></textarea><br>
-        <button onclick="renderTable()">터미널 뷰어로 변환</button>
+    <div class="control-panel" id="controls">
+        <textarea id="inputArea" placeholder="[ SYSTEM READY ] : 엑셀 데이터를 여기에 붙여넣으십시오 (Ctrl+V)"></textarea>
+        <div class="btn-group">
+            <button onclick="renderTable()">▶ INITIALIZE TERMINAL</button>
+            <button id="downloadBtn" onclick="downloadExcel()">💾 EXPORT TO EXCEL</button>
+        </div>
     </div>
-
-    <div class="status-bar">L방어폭: 28.51% &nbsp;&nbsp; L망아폭: 28.51% &nbsp;&nbsp; 예상순총금: 1197.00</div>
     
-    <div id="output"></div>
-</div>
+    <div class="table-container" id="output">
+        </div>
 
 <script>
 function renderTable() {
     const text = document.getElementById('inputArea').value;
-    if (!text.trim()) return alert("데이터를 입력해주세요.");
+    if (!text.trim()) {
+        alert("데이터를 입력해주세요.");
+        return;
+    }
 
     const lines = text.split('\n');
-    let html = '<table>';
+    // id="dataTable"을 부여하여 엑셀 다운로드 시 인식하게 함
+    let html = '<table id="dataTable">';
 
     lines.forEach(line => {
         if (!line.trim()) return;
@@ -137,7 +187,7 @@ function renderTable() {
         let isHeader = false;
         let isTotal = false;
 
-        // 행 성격 분류
+        // 문자열에 포함된 키워드로 행(Row) 속성 식별
         if (line.includes('BINANCE_S')) { trClass = 'title-red'; isTitle = true; }
         else if (line.includes('BINANCE_L')) { trClass = 'title-teal'; isTitle = true; }
         else if (line.includes('전체 그룹 수')) { trClass = 'header-row'; isHeader = true; }
@@ -149,19 +199,17 @@ function renderTable() {
         cells.forEach((cell, index) => {
             let content = cell.trim();
             
-            // 데이터 행일 경우, 세 번째 열(종료일) 앞에 우주선/행성 이모지 추가 (이미지 고증)
+            // 데이터 행의 종료일 열에 우주선 이모지 삽입 (이미지 고증)
             if (!isTitle && !isHeader && !isTotal && index === 2 && content !== '') {
                 content = `🪐 ${content}`;
             }
 
             if (isTitle) {
-                // 타이틀은 전체 병합
                 if (index === 0) html += `<td colspan="20">${content}</td>`;
             } else if (isHeader) {
                 html += `<th>${content}</th>`;
             } else {
-                // 1, 2, 3번째 열은 가운데 정렬, 나머지는 우측 정렬
-                let alignClass = (index < 3 || isTotal && index === 0) ? 'text-center' : 'text-right';
+                let alignClass = (index < 3 || (isTotal && index === 0)) ? 'text-center' : 'text-right';
                 html += `<td class="${alignClass}">${content}</td>`;
             }
         });
@@ -170,9 +218,29 @@ function renderTable() {
 
     html += '</table>';
     
-    // 테이블 출력 후 입력창 숨기기
+    // 화면에 테이블 렌더링
     document.getElementById('output').innerHTML = html;
-    document.getElementById('controlPanel').style.display = 'none';
+    
+    // 입력창은 숨기고 엑셀 다운로드 버튼 표시
+    document.getElementById('inputArea').style.display = 'none';
+    document.getElementById('downloadBtn').style.display = 'inline-block';
+}
+
+// 엑셀 다운로드 기능 (SheetJS 라이브러리 사용)
+function downloadExcel() {
+    // 1. 화면에 렌더링된 테이블 요소를 가져옴
+    const table = document.getElementById('dataTable');
+    if (!table) return;
+
+    // 2. 워크북 생성 및 테이블 데이터 파싱
+    const wb = XLSX.utils.table_to_book(table, {sheet: "QuantData"});
+    
+    // 3. 파일명 생성 (현재 시간 기반)
+    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+    const fileName = `Terminal_Export_${dateStr}.xlsx`;
+
+    // 4. 엑셀 파일 다운로드 실행
+    XLSX.writeFile(wb, fileName);
 }
 </script>
 
