@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>우주 테마 데이터 터미널</title>
+    <style>
+        /* 우주 느낌의 배경 및 기본 폰트 설정 */
+        body {
+            background-color: #050814;
+            background-image: radial-gradient(circle at 50% 0%, #1a2342 0%, #050814 70%);
+            color: #c9d1d9;
+            font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        h1 {
+            text-align: center;
+            color: #58a6ff;
+            text-shadow: 0 0 10px rgba(88, 166, 255, 0.5);
+        }
+
+        /* 입력 창 및 버튼 디자인 */
+        .control-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 30px;
+            gap: 15px;
+        }
+
+        textarea {
+            width: 90%;
+            max-width: 1000px;
+            height: 100px;
+            background-color: rgba(13, 17, 23, 0.8);
+            color: #8b949e;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 10px;
+            font-family: monospace;
+            resize: vertical;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #58a6ff;
+            box-shadow: 0 0 8px rgba(88, 166, 255, 0.3);
+        }
+
+        button {
+            background-color: #238636;
+            color: #ffffff;
+            border: none;
+            padding: 10px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 0 10px rgba(35, 134, 54, 0.4);
+        }
+
+        button:hover {
+            background-color: #2ea043;
+            box-shadow: 0 0 15px rgba(46, 160, 67, 0.6);
+        }
+
+        /* 터미널 느낌의 테이블 디자인 */
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            background: rgba(10, 15, 25, 0.6);
+            border-radius: 8px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid #30363d;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            white-space: nowrap;
+        }
+
+        th, td {
+            border: 1px solid #21262d;
+            padding: 8px 12px;
+            text-align: right;
+            font-size: 13px;
+        }
+
+        /* 텍스트 컬럼은 가운데 정렬 */
+        td:nth-child(2), td:nth-child(3) {
+            text-align: center; 
+        }
+
+        /* 헤더 디자인 */
+        th {
+            background-color: #161b22;
+            color: #e6edf3;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        /* 행 마우스 오버 시 하이라이트 효과 */
+        tr:hover {
+            background-color: rgba(56, 139, 253, 0.1);
+        }
+
+        /* 첫 번째 그룹 헤더 (붉은 느낌) */
+        tr.header-red th {
+            background-color: rgba(74, 28, 28, 0.8);
+            color: #ffcccc;
+        }
+
+        /* 두 번째 그룹 헤더 (청록색 느낌) */
+        tr.header-teal th {
+            background-color: rgba(28, 58, 58, 0.8);
+            color: #ccffff;
+        }
+        
+        /* 합계 행 (노란색 텍스트) */
+        tr.summary-row td {
+            color: #e3b341;
+            font-weight: bold;
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🌌 스페이스 터미널 백테스트 뷰어</h1>
+    
+    <div class="control-panel">
+        <textarea id="excelInput" placeholder="엑셀에서 복사한 데이터를 여기에 붙여넣으세요 (Ctrl+V)"></textarea>
+        <button onclick="generateTable()">터미널 뷰 생성</button>
+    </div>
+
+    <div class="table-container" id="tableContainer">
+        </div>
+
+    <script>
+        function generateTable() {
+            const input = document.getElementById('excelInput').value;
+            if (!input.trim()) {
+                alert("데이터를 먼저 붙여넣어 주세요.");
+                return;
+            }
+
+            // 줄바꿈으로 행 분리
+            const rows = input.split('\n');
+            let tableHTML = '<table>';
+
+            rows.forEach((row, index) => {
+                // 빈 줄 무시
+                if (!row.trim()) return; 
+                
+                // 엑셀에서 복사한 데이터는 탭(\t)으로 열이 구분됩니다
+                const cells = row.split('\t'); 
+                
+                // 이미지의 조건에 맞춰 행 클래스 부여 (간단한 키워드 매칭)
+                let trClass = '';
+                if (row.includes('1차 월타이밍') || row.includes('1차 필터링') || row.includes('BINANCE_S')) {
+                    trClass = 'header-red';
+                } else if (row.includes('BINANCE_L')) {
+                    trClass = 'header-teal';
+                } else if (row.includes('합계')) {
+                    trClass = 'summary-row';
+                }
+
+                tableHTML += `<tr class="${trClass}">`;
+
+                cells.forEach((cell, cellIndex) => {
+                    // 첫 두 줄 정도를 보통 헤더로 취급하거나, 문자열 길이 등을 보고 th/td 결정
+                    // 여기서는 단순히 첫 행이거나 특별한 클래스가 지정된 행을 헤더 처리합니다.
+                    if (index === 0 || index === 1 || trClass.includes('header')) {
+                        // 셀 병합(colspan) 흉내내기: 빈 셀이 많으면 병합된 것으로 간주할 수 있지만, 여기서는 단순 출력
+                        tableHTML += `<th>${cell.trim()}</th>`;
+                    } else {
+                        tableHTML += `<td>${cell.trim()}</td>`;
+                    }
+                });
+                
+                tableHTML += '</tr>';
+            });
+
+            tableHTML += '</table>';
+            document.getElementById('tableContainer').innerHTML = tableHTML;
+        }
+    </script>
+
+</body>
+</html>
